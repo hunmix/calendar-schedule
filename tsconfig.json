@@ -6,7 +6,7 @@
     "paths": {
       "@nighttrax/components/*": ["packages/components/src/*"],
       "@nighttrax/*": ["packages/*/src"],
-      "gantt-scheduler-timeline": ["packages/core/src"]
+      "gantt-scheduler-timeline": ["packages/gantt-scheduler-timeline/src"]
     },
     "noEmit": true
   }
