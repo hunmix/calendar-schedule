@@ -13,10 +13,12 @@
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
     "rimraf": "~5.0.0",
     "typescript": "~4.9.0"
   },
   "dependencies": {
+    "lodash-es": "^4.17.21",
     "@visactor/vrender": "^0.19.2",
     "dayjs": "^1.11.11",
     "i18next": "^23.11.3"

@@ -1,3 +1,3 @@
-import Schedule from "./core";
+import Schedule from "./core/schedule";
 
 export { Schedule };
