@@ -76,7 +76,7 @@ export class BarWidget extends BaseWidget {
     };
   }
 
-  updateLayout(rect: LayoutRect) {
+  relayout(rect: LayoutRect) {
     this.rect = rect;
     this.barMark?.update(this.getBarPosition());
     this.titleMark?.update(this.getTitlePosition());

@@ -12,10 +12,12 @@ export class ResourceData {
   endTime: number;
   formatMethod?: FormatMethod;
   originData: ResourceOption;
+  rowId: number;
 
   constructor(option: ResourceOption) {
-    const { id, field, formatMethod, start, end } = option;
+    const { id, rowId, field, formatMethod, start, end } = option;
     this.id = id;
+    this.rowId = rowId;
     this.field = field;
     this.startDate = dayjs(start);
     this.endDate = dayjs(end);

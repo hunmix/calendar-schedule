@@ -77,8 +77,8 @@ class Schedule {
   // TODO:
   private initLayout() {
     this.layout = new GridLayout({
-      cols: 2,
-      rows: 2,
+      cols: 3,
+      rows: 3,
       width: this.width,
       height: this.height,
     });
@@ -188,6 +188,8 @@ class Schedule {
     });
     this.layout.setColSize(1, this.width - leftRect.width);
     this.layout.reLayout();
+    const rect = this.chart.getLayoutRect()
+    this.timeScale.setRange([rect.x1, rect.x2]);
     this.components.forEach((v) => v.reLayout());
     this.render();
   };

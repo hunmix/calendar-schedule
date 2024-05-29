@@ -60,6 +60,10 @@ export class Task {
     };
   }
 
+  getRowId() {
+    return this.data.rowId;
+  }
+
   updateLayout(rect: LayoutRect) {
     this.rect = rect;
     this.reLayout();
@@ -67,7 +71,7 @@ export class Task {
 
   reLayout() {
     this.rect = this.getRect();
-    this.barWidget?.updateLayout(this.rect);
+    this.barWidget?.relayout(this.rect);
   }
 
   compile(group: IGraphic) {

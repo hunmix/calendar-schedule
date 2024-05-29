@@ -46,7 +46,6 @@ export class Calender extends BaseComponent {
 
   reLayout() {
     const rect = this.getLayoutRect();
-    this.timeScale.setRange([rect.x1, rect.x2]);
     this.timelines.reduce((preTotalHeight, timeline) => {
       timeline.reLayout({
         ...rect,

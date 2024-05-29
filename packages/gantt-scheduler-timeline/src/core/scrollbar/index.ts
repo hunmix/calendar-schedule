@@ -4,15 +4,23 @@ import { DataStore } from "../data/dataStore";
 import { Task } from "./task/base";
 import { TimeScale } from "../timeScale";
 import { GridLayout } from "../layout/gridLayout";
+import { RectMark } from "../marks/rect";
 
-export class Chart extends BaseComponent {
-  tasks: Task[] = [];
-  dataStore!: DataStore;
+export type ScrollDirection = 'horizontal' | 'vertical';
+
+export interface ScrollbarOptions {
+  direction: ScrollDirection;
+}
+
+export class Scrollbar extends BaseComponent {
+  direction: ScrollDirection;
+  scrollbar!: RectMark;
   layout!: GridLayout;
   rowIndex?: number;
   colIndex?: number;
-  constructor(stage: Stage, timeScale: TimeScale) {
+  constructor(options: ScrollbarOptions, stage: Stage, timeScale: TimeScale) {
     super(stage, timeScale);
+    this.direction = options.direction;
   }
 
   init() {
@@ -20,18 +28,10 @@ export class Chart extends BaseComponent {
   }
 
   private initMarks() {
-    const taskData = this.dataStore.getTasks();
-    this.tasks = taskData.map((data) => new Task(data, this));
-  }
-
-  protected updateLayout() {
-    const rect = this.getLayoutRect();
-    this.tasks.forEach((task) => {
-      task.updateLayout({
-        ...rect,
-        y1: rect.y1 + task.getRowId() * task.height,
-      });
-    });
+    this.scrollbar = new RectMark({
+      fill: '#000000',
+      opacity: 0.5,
+    })
   }
 
   getTimeScale() {
@@ -39,8 +39,8 @@ export class Chart extends BaseComponent {
   }
 
   reLayout() {
-    this.updateLayout();
-    this.tasks.forEach((task) => task.reLayout());
+    const rect = this.getLayoutRect()
+    this.scrollbar.update(rect)
   }
 
   getGraphics() {
@@ -48,7 +48,7 @@ export class Chart extends BaseComponent {
   }
 
   compile() {
-    this.tasks.forEach((task) => task.compile(this.group));
+    this.scrollbar.compile(this.group)
     this.stage.defaultLayer.add(this.group);
   }
 }

@@ -1,8 +1,11 @@
+import { ScrollDirection } from "../core/scrollbar";
+
 export interface ScheduleOptions {
   tasks?: TaskOption[];
   resources?: ResourceOption[];
   startDate?: string;
   endDate?: string;
+  columnWidth?: number;
   width?: number;
   height?: number;
   autoFit?: boolean;
@@ -11,13 +14,19 @@ export interface ScheduleOptions {
 }
 export interface TaskOption {
   id: string;
-  resourceId?: string;
+  resourceId: string;
   title: string;
   data?: any;
   start: string;
   end?: string;
   duration?: number;
   [field: string]: any;
+}
+
+export interface scrollbar {
+  direction: ScrollDirection;
+  visible: boolean;
+  barWidth: number;
 }
 
 export type FormatMethod = (

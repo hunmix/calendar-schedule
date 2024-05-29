@@ -14,10 +14,15 @@ export interface DataStoreOption {
 
 export class DataStore {
   resources: ResourceData[] = [];
+
   tasks: TaskData[] = [];
+
   taskMap: Map<string, TaskData> = new Map();
+
   resourceMap: Map<string, ResourceData> = new Map();
+
   option: DataStoreOption;
+
   constructor(option: DataStoreOption) {
     this.option = option;
     this.init();
@@ -25,8 +30,15 @@ export class DataStore {
 
   private init() {
     const { tasks = [], resources = [] } = this.option;
-    tasks.forEach((task) => this.addTask({ ...task }));
-    resources.forEach((resource) => this.addResource(resource));
+    resources.forEach((resource, index) =>
+      this.addResource({ ...resource, rowId: index })
+    );
+    tasks.forEach((task) =>
+      this.addTask({
+        ...task,
+        rowId: this.getRowIdByResourceId(task.resourceId),
+      })
+    );
   }
 
   addTask(option: TaskOption) {
@@ -34,10 +46,20 @@ export class DataStore {
     this.taskMap.set(task.id, task);
     this.tasks.push(task);
   }
+
   addResource(option: ResourceOption) {
     const resource = new ResourceData(option);
     this.resourceMap.set(resource.id, resource);
     this.resources.push(resource);
+  }
+
+  getRowIdByResourceId(id: string) {
+    const resource = this.resourceMap.get(id);
+
+    if (resource) {
+      return resource.rowId;
+    }
+    throw new Error(`resource id ${id} not found`);
   }
 
   getTasks() {

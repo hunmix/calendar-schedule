@@ -10,6 +10,19 @@ const App = () => {
         autoFit: true,
         startDate: "2024-03-20",
         endDate: "2024-06-10",
+        columnWidth: 50,
+        scrollbar: [
+          {
+            direction: 'horizontal',
+            visible: true,
+            barWidth: 10,
+          },
+          {
+            direction: 'vertical',
+            visible: true,
+            barWidth: 10,
+          }
+        ],
         headers: [
           {
             unit: "month",
@@ -59,6 +72,24 @@ const App = () => {
             name: "name1",
             type: "type1",
           },
+          {
+            id: "4",
+            resourceId: "1",
+            title: "title4",
+            start: "2024-05-01",
+            end: "2024-05-03",
+            name: "name4",
+            type: "type1",
+          },
+          {
+            id: "5",
+            resourceId: "10",
+            title: "title5",
+            start: "2024-05-01",
+            end: "2024-05-03",
+            name: "name5",
+            type: "type1",
+          },
         ],
         resources: [
           {
@@ -75,6 +106,41 @@ const App = () => {
             id: "3",
             name: "C",
             tag: "tag3",
+          },
+          {
+            id: "4",
+            name: "D",
+            tag: "tag4",
+          },
+          {
+            id: "5",
+            name: "E",
+            tag: "tag5",
+          },
+          {
+            id: "6",
+            name: "F",
+            tag: "tag6",
+          },
+          {
+            id: "7",
+            name: "G",
+            tag: "tag7",
+          },
+          {
+            id: "8",
+            name: "H",
+            tag: "tag8",
+          },
+          {
+            id: "9",
+            name: "I",
+            tag: "tag9",
+          },
+          {
+            id: "10",
+            name: "J",
+            tag: "tag10",
           },
         ],
       });
