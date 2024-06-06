@@ -36,10 +36,15 @@ export class Grid extends BaseComponent {
       );
       return column;
     });
+
+    // TODO:
+    const contentHeight = resourceData.length * this.height
+    this.layout.setRowContentSize(this.rowIndex!, contentHeight);
   }
 
   reLayout() {
     const rect = this.getLayoutRect();
+    console.log(this.layout)
     let x1 = 0;
     this.columns.forEach((column) => {
       column.reLayout({

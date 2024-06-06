@@ -28,7 +28,8 @@ export class LayoutItem {
   constructor() {}
 
   setAttr(attrs: LayoutItemOption) {
-    const { x1, y1, x2, y2, width, height, contentWidth, contentHeight } = attrs;
+    const { x1, y1, x2, y2, width, height, contentWidth, contentHeight } =
+      attrs;
     !isNil(x1) && (this.x1 = x1);
     !isNil(y1) && (this.y1 = y1);
     !isNil(x2) && (this.x2 = x2);
@@ -37,6 +38,16 @@ export class LayoutItem {
     !isNil(height) && (this.height = height);
     !isNil(contentWidth) && (this.contentWidth = contentWidth);
     !isNil(contentHeight) && (this.contentHeight = contentHeight);
+  }
+
+  setOffset(field: "x" | "y", offset: number) {
+    if (field === "x") {
+      this.offsetX = offset;
+    } else if (field === "y") {
+      this.offsetY = offset;
+    } else {
+      throw Error(`${field} is invalid`);
+    }
   }
 
   getRect() {

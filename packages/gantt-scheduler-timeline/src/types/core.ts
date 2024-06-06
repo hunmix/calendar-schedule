@@ -6,6 +6,7 @@ export interface ScheduleOptions {
   startDate?: string;
   endDate?: string;
   columnWidth?: number;
+  unitWidth?: number;
   width?: number;
   height?: number;
   autoFit?: boolean;

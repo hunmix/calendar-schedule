@@ -95,7 +95,7 @@ export class Timeline {
     const domain = this.timeScale.getDomain();
     const start = dayjs(domain[0]);
     const end = dayjs(domain[1]);
-    this.count = end.diff(start, this.unit);
+    this.count = 0;
     let startDate = start;
     while (startDate.isBefore(end)) {
       let endDate = startDate.endOf(this.unit);
@@ -107,6 +107,7 @@ export class Timeline {
         endTime: endDate.valueOf(),
         text: startDate.format(this.format ?? "YYYY-MM-DD"),
       });
+      this.count++;
       startDate = startDate.add(1, this.unit).startOf(this.unit);
     }
   }

@@ -11,6 +11,7 @@ export interface CalenderConfig {
   start: Dayjs;
   end: Dayjs;
   headers: Header[];
+  unitWidth: number;
 }
 
 export class Calender extends BaseComponent {
@@ -20,13 +21,15 @@ export class Calender extends BaseComponent {
   option: CalenderConfig;
   timelines: Timeline[] = [];
   layout!: GridLayout;
+  unitWidth: number;
   constructor(option: CalenderConfig, stage: Stage, timeScale: TimeScale) {
     super(stage, timeScale);
     this.option = option;
-    const { start, end } = option;
+    const { start, end, unitWidth } = option;
     this.stage = stage;
     this.start = start;
     this.end = end;
+    this.unitWidth = unitWidth;
   }
 
   init() {
@@ -42,6 +45,8 @@ export class Calender extends BaseComponent {
           this.timeScale
         )
     );
+    const maxCount = Math.max(...this.timelines.map((v) => v.count));
+    this.layout.setColContentSize(this.colIndex!, maxCount * this.unitWidth);
   }
 
   reLayout() {

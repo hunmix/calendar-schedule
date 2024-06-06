@@ -11,17 +11,18 @@ const App = () => {
         startDate: "2024-03-20",
         endDate: "2024-06-10",
         columnWidth: 50,
+        unitWidth: 40,
         scrollbar: [
           {
-            direction: 'horizontal',
+            direction: "horizontal",
             visible: true,
             barWidth: 10,
           },
           {
-            direction: 'vertical',
+            direction: "vertical",
             visible: true,
             barWidth: 10,
-          }
+          },
         ],
         headers: [
           {

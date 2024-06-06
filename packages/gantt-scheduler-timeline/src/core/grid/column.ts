@@ -24,7 +24,7 @@ export interface GridColumnOption {
 
 export class GridColumn {
   option: GridColumnOption;
-  group: IGroup = createGroup({});
+  group: IGroup = createGroup({ clip: true });
   height: number = 50;
   resources: ResourceData[] = [];
   graphics: IGraphic[] = [];
@@ -94,8 +94,10 @@ export class GridColumn {
     return this.resources.map((resourceData, index) => {
       const text = resourceData.originData[this.field] ?? "";
       const rect = {
-        x: this.rect.x1,
-        y: this.rect.y1 + this.height * index,
+        // x: this.rect.x1,
+        // y: this.rect.y1 + this.height * index,
+        x: 0,
+        y: 0 + this.height * index,
         width: this.rect.width,
         height: this.height,
       };
@@ -118,6 +120,12 @@ export class GridColumn {
   reLayout(rect: LayoutRect) {
     this.rect = rect;
     const config = this.getGragphicConfig();
+    this.group.setAttributes({
+      x: rect.x1,
+      y: rect.y1,
+      width: rect.width,
+      height: rect.height,
+    });
     this.rectMarks.forEach((mark, index) => mark.update(config[index].rect));
     this.titleMarks.forEach((mark, index) => mark.update(config[index].title));
   }

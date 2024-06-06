@@ -10,6 +10,8 @@ import { DataStore } from "./data/dataStore";
 import { GridLayout } from "./layout/gridLayout";
 import { Grid } from "./grid";
 import { Header as GridHeader } from "./gridHeader";
+import { Scrollbar } from "./scrollbar";
+import { isNil } from "lodash-es";
 
 class Schedule {
   private container: HTMLElement;
@@ -30,7 +32,11 @@ class Schedule {
   private layout!: GridLayout;
   private dataStore!: DataStore;
   private calenderHeight: number = 30;
+  private scrollbarWidth: number = 10;
+  private unitWidth: number = 30;
   private minUnit: Unit = "day";
+  private scrollX?: Scrollbar;
+  private scrollY?: Scrollbar;
   constructor(container: string | HTMLElement, options: ScheduleOptions = {}) {
     const containerDom =
       typeof container === "string"
@@ -43,7 +49,14 @@ class Schedule {
 
     this.options = options;
     this.resizeEventStore = new ResizeEventStore();
-    const { tasks = [], startDate, endDate, autoFit, headers } = this.options;
+    const {
+      tasks = [],
+      startDate,
+      endDate,
+      autoFit,
+      headers,
+      unitWidth,
+    } = this.options;
     this.startDate = dayjs(startDate);
     this.endDate = dayjs(endDate);
     this.autoFit = !!autoFit;
@@ -51,6 +64,7 @@ class Schedule {
     const rect = this.container.getBoundingClientRect();
     this.width = rect.width;
     this.height = rect.height;
+    !isNil(unitWidth) && (this.unitWidth = unitWidth);
 
     (this.minUnit = headers ? headers[headers.length - 1].unit : "day"), // TODO:
       this.init();
@@ -92,9 +106,14 @@ class Schedule {
       0
     );
     this.layout.setColSize(0, columnsWidth);
-    this.layout.setColSize(1, this.width - columnsWidth);
+    this.layout.setColSize(1, this.width - columnsWidth - this.scrollbarWidth);
+    this.layout.setColSize(2, this.scrollbarWidth);
     this.layout.setRowSize(0, calendarHeight);
-    this.layout.setRowSize(1, this.height - calendarHeight);
+    this.layout.setRowSize(
+      1,
+      this.height - calendarHeight - this.scrollbarWidth
+    );
+    this.layout.setRowSize(2, this.scrollbarWidth);
     this.layout.reLayout();
   }
 
@@ -125,6 +144,7 @@ class Schedule {
         })),
         start: this.startDate,
         end: this.endDate,
+        unitWidth: this.unitWidth,
       },
       this.stage,
       this.timeScale
@@ -139,16 +159,46 @@ class Schedule {
       this.stage,
       this.timeScale
     );
+    this.scrollX = new Scrollbar(
+      { direction: "horizontal" },
+      this.stage,
+      this.timeScale
+    );
+    this.scrollY = new Scrollbar(
+      { direction: "vertical" },
+      this.stage,
+      this.timeScale
+    );
     this.calender.setLayoutIndex({ rowIndex: 0, colIndex: 1 });
     this.grid.setLayoutIndex({ rowIndex: 1, colIndex: 0 });
     this.chart.setLayoutIndex({ rowIndex: 1, colIndex: 1 });
     this.header.setLayoutIndex({ rowIndex: 0, colIndex: 0 });
-    this.components = [this.calender, this.header, this.grid, this.chart];
+    this.scrollX.setLayoutIndex({ rowIndex: 2, colIndex: 1 });
+    this.scrollY.setLayoutIndex({ rowIndex: 1, colIndex: 2 });
+    this.components = [
+      this.calender,
+      this.header,
+      this.grid,
+      this.chart,
+      this.scrollX,
+      this.scrollY,
+    ];
+    this.scrollY.addListenser("scroll", this.handleScroll);
     this.components.forEach((component) => component.bindData(this.dataStore));
     this.components.forEach((component) => component.bindLayout(this.layout));
     this.components.forEach((component) => component.init());
+    // TODO:
+    this.layout.reLayout();
     this.components.forEach((v) => v.reLayout());
   }
+
+  private handleScroll = (e: any, payload: any) => {
+    console.log(payload);
+    this.layout.setRowOffset(this.scrollY?.rowIndex!, payload);
+    this.layout.reLayout();
+    this.components.forEach((v) => v.reLayout());
+    this.render();
+  };
 
   scale(timeStamp: number) {
     return this.timeScale.getValue(timeStamp);
@@ -186,9 +236,16 @@ class Schedule {
       rowIndex: 0,
       colIndex: 0,
     });
-    this.layout.setColSize(1, this.width - leftRect.width);
+    this.layout.setColSize(
+      1,
+      this.width - leftRect.width - this.scrollbarWidth
+    );
+    this.layout.setRowSize(
+      1,
+      this.height - leftRect.height - this.scrollbarWidth
+    );
     this.layout.reLayout();
-    const rect = this.chart.getLayoutRect()
+    const rect = this.chart.getLayoutRect();
     this.timeScale.setRange([rect.x1, rect.x2]);
     this.components.forEach((v) => v.reLayout());
     this.render();
