@@ -10,7 +10,7 @@ import { DataStore } from "./data/dataStore";
 import { GridLayout } from "./layout/gridLayout";
 import { Grid } from "./grid";
 import { Header as GridHeader } from "./gridHeader";
-import { Scrollbar } from "./scrollbar";
+import { Scrollbar, ScrollbarEventPayload } from "./scrollbar";
 import { isNil } from "lodash-es";
 
 class Schedule {
@@ -32,8 +32,9 @@ class Schedule {
   private layout!: GridLayout;
   private dataStore!: DataStore;
   private calenderHeight: number = 30;
-  private scrollbarWidth: number = 10;
+  private scrollbarWidth: number = 30;
   private unitWidth: number = 30;
+  private autoUnitWidth: boolean = false;
   private minUnit: Unit = "day";
   private scrollX?: Scrollbar;
   private scrollY?: Scrollbar;
@@ -56,6 +57,7 @@ class Schedule {
       autoFit,
       headers,
       unitWidth,
+      autoUnitWidth,
     } = this.options;
     this.startDate = dayjs(startDate);
     this.endDate = dayjs(endDate);
@@ -65,6 +67,7 @@ class Schedule {
     this.width = rect.width;
     this.height = rect.height;
     !isNil(unitWidth) && (this.unitWidth = unitWidth);
+    !isNil(autoUnitWidth) && (this.autoUnitWidth = autoUnitWidth);
 
     (this.minUnit = headers ? headers[headers.length - 1].unit : "day"), // TODO:
       this.init();
@@ -127,7 +130,8 @@ class Schedule {
         this.startDate.startOf(this.minUnit).valueOf(),
         this.endDate.endOf(this.minUnit).valueOf(),
       ],
-      range: [rect.x1, rect.x2],
+      // range: [rect.x1, rect.x2],
+      range: [0, rect.contentWidth ?? rect.width],
     });
   }
 
@@ -141,6 +145,7 @@ class Schedule {
         headers: headers.map((v) => ({
           ...v,
           height: v.height ? v.height : this.calenderHeight,
+          autoUnitWidth: this.autoUnitWidth,
         })),
         start: this.startDate,
         end: this.endDate,
@@ -184,17 +189,28 @@ class Schedule {
       this.scrollY,
     ];
     this.scrollY.addListenser("scroll", this.handleScroll);
+    this.scrollX.addListenser("scroll", this.handleScroll);
     this.components.forEach((component) => component.bindData(this.dataStore));
     this.components.forEach((component) => component.bindLayout(this.layout));
     this.components.forEach((component) => component.init());
     // TODO:
     this.layout.reLayout();
+    const rect = this.chart.getLayoutRect();
+    this.timeScale.setRange([
+      // rect.x1,
+      0,
+      this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth, // TODO: layout item should to calc the contentHeight automatically
+    ]);
     this.components.forEach((v) => v.reLayout());
   }
 
-  private handleScroll = (e: any, payload: any) => {
-    console.log(payload);
-    this.layout.setRowOffset(this.scrollY?.rowIndex!, payload);
+  private handleScroll = (e: any, payload: ScrollbarEventPayload) => {
+    const { offset, direction } = payload;
+    if (direction === "vertical") {
+      this.layout.setRowOffset(this.scrollY?.rowIndex!, offset);
+    } else if (direction === "horizontal") {
+      this.layout.setColOffset(this.scrollX?.colIndex!, offset);
+    }
     this.layout.reLayout();
     this.components.forEach((v) => v.reLayout());
     this.render();
@@ -246,7 +262,11 @@ class Schedule {
     );
     this.layout.reLayout();
     const rect = this.chart.getLayoutRect();
-    this.timeScale.setRange([rect.x1, rect.x2]);
+    this.timeScale.setRange([
+      // rect.x1,
+      0,
+      this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth,
+    ]);
     this.components.forEach((v) => v.reLayout());
     this.render();
   };

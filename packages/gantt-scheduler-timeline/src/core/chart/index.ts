@@ -9,6 +9,7 @@ export class Chart extends BaseComponent {
   tasks: Task[] = [];
   dataStore!: DataStore;
   layout!: GridLayout;
+  group: IGroup = createGroup({ clip: true });
   rowIndex?: number;
   colIndex?: number;
   constructor(stage: Stage, timeScale: TimeScale) {
@@ -26,10 +27,19 @@ export class Chart extends BaseComponent {
 
   protected updateLayout() {
     const rect = this.getLayoutRect();
+    this.group.setAttributes({
+      // x: rect.x1 - rect.offsetX,
+      // y: rect.y1 - rect.offsetY,
+      x: rect.x1,
+      y: rect.y1,
+      width: rect.width,
+      height: rect.height,
+    });
     this.tasks.forEach((task) => {
       task.updateLayout({
         ...rect,
         y1: rect.y1 + task.getRowId() * task.height,
+        x1: rect.x1,
       });
     });
   }

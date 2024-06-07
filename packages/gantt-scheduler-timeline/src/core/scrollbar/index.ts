@@ -14,7 +14,12 @@ export interface ScrollbarOptions {
 
 export type TypeEventType = "scrollStart" | "scroll" | "scrollEnd";
 
-export type ScrollBarEvent = (e: any, payload: any) => void;
+export interface ScrollbarEventPayload {
+  offset: number;
+  direction: ScrollDirection;
+}
+
+export type ScrollBarEvent = (e: any, payload: ScrollbarEventPayload) => void;
 
 export class Scrollbar extends BaseComponent {
   direction: ScrollDirection;
@@ -23,7 +28,9 @@ export class Scrollbar extends BaseComponent {
   rowIndex?: number;
   colIndex?: number;
   isDragging: boolean = false;
-  start: number = 0;
+  position: number = 0;
+  barLength: number = 0;
+  prevPosition: number = 0;
   dragLength: number = 0;
   listeners: ScrollBarEvent[] = [];
   listenerMap: Map<TypeEventType, ScrollBarEvent[]> = new Map();
@@ -44,29 +51,45 @@ export class Scrollbar extends BaseComponent {
       fill: "red",
       opacity: 0.5,
     });
+
+    this.initScrollEvents()
+    
+  }
+
+  private initScrollEvents() {
     this.scrollbar.getGraphic()?.addEventListener("mousedown", (v: any) => {
-      const rect = this.getLayoutRect();
-      console.log("start");
-      console.log(rect.offsetY);
-      this.dragLength =
-        this.direction === "vertical" ? rect.offsetY : rect.offsetX;
       this.isDragging = true;
-      this.start = this.direction === "vertical" ? v.canvas.y : v.canvas.x;
-      // console.log(v);
+      this.prevPosition =
+        this.direction === "vertical" ? v.canvas.y : v.canvas.x;
     });
     this.scrollbar.getGraphic()?.addEventListener("mousemove", (v: any) => {
       if (this.isDragging) {
-        this.dragLength =
-          (this.direction === "vertical" ? v.canvas.y : v.canvas.x) -
-          this.start;
-        this.trigger("scroll", v, this.dragLength);
+        const rect = this.getLayoutRect();
+        this.position =
+          this.direction === "vertical" ? rect.offsetY : rect.offsetX;
+        const curPos = this.direction === "vertical" ? v.canvas.y : v.canvas.x;
+        const dragedLength = curPos - this.prevPosition;
+        this.prevPosition = curPos;
+
+        const rectLength =
+          this.direction === "vertical" ? rect.height : rect.width;
+        const contentLength =
+          this.direction === "vertical"
+            ? rect.contentHeight
+            : rect.contentWidth;
+
+        const value =
+          this.position + (dragedLength / rectLength) * contentLength;
+
+        this.trigger("scroll", v, {
+          offset: Math.min(Math.max(0, value), contentLength - (this.barLength / rectLength) * contentLength),
+          direction: this.direction,
+        });
       }
     });
     this.scrollbar.getGraphic()?.addEventListener("mouseup", (v) => {
       this.isDragging = false;
-      this.dragLength = 0;
       console.log("mouseup");
-      // console.log(v);
     });
   }
 
@@ -90,25 +113,26 @@ export class Scrollbar extends BaseComponent {
   reLayout() {
     const rect = this.getLayoutRect();
     if (this.direction === "horizontal") {
-      const barLength = (rect.width / rect.contentWidth) * rect.width;
+      this.barLength = (rect.width / rect.contentWidth) * rect.width;
       const start =
         rect.x1 + (Math.abs(rect.offsetX) / rect.contentWidth) * rect.width;
-      console.log(rect.y1 + rect.offsetY);
+      // const start =
+      //   rect.x1 + (Math.abs(rect.offsetX) * rect.width) / rect.contentWidth;
       this.scrollbar.update({
         x: start,
-        y: rect.y1 + rect.offsetY,
-        width: barLength,
+        y: rect.y1,
+        width: this.barLength,
         height: rect.height,
       });
     } else {
-      const barLength = (rect.height / rect.contentHeight) * rect.height;
+      this.barLength = (rect.height / rect.contentHeight) * rect.height;
       const start =
         rect.y1 + (Math.abs(rect.offsetY) / rect.contentHeight) * rect.height;
       this.scrollbar.update({
         x: rect.x1,
         y: start,
         width: rect.width,
-        height: barLength,
+        height: this.barLength,
       });
     }
   }

@@ -11,7 +11,8 @@ const App = () => {
         startDate: "2024-03-20",
         endDate: "2024-06-10",
         columnWidth: 50,
-        unitWidth: 40,
+        unitWidth: 20,
+        autoUnitWidth: false,
         scrollbar: [
           {
             direction: "horizontal",
@@ -142,6 +143,11 @@ const App = () => {
             id: "10",
             name: "J",
             tag: "tag10",
+          },
+          {
+            id: "11",
+            name: "K",
+            tag: "tag11",
           },
         ],
       });

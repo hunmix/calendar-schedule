@@ -53,6 +53,8 @@ export class Grid extends BaseComponent {
         x2: rect.x1 + x1 + column.width,
         y1: rect.y1,
         width: column.width!,
+        offsetX: rect.offsetX,
+        offsetY: rect.offsetY,
       });
       x1 += column.width!;
     });

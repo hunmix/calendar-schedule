@@ -23,6 +23,8 @@ export class Task {
     y2: 0,
     width: 0,
     height: 0,
+    offsetX: 0,
+    offsetY: 0,
   };
   constructor(data: TaskData, chart: Chart) {
     this.data = data;
@@ -45,10 +47,12 @@ export class Task {
       timeScale.getValue(this.data.endTime),
     ];
     const rect = {
-      x: range[0],
-      y: this.rect.y1,
+      x: range[0] - this.rect.offsetX,
+      y: this.rect.y1 - this.rect.offsetY,
       width: range[1] - range[0],
       height: this.height,
+      offsetX: this.rect.offsetX,
+      offsetY: this.rect.offsetY,
     };
     return {
       x1: rect.x,
@@ -57,6 +61,8 @@ export class Task {
       y2: rect.y + rect.height,
       width: rect.width,
       height: rect.height,
+      offsetX: this.rect.offsetX,
+      offsetY: this.rect.offsetY,
     };
   }
 
@@ -71,6 +77,7 @@ export class Task {
 
   reLayout() {
     this.rect = this.getRect();
+    console.log(this.rect)
     this.barWidget?.relayout(this.rect);
   }
 

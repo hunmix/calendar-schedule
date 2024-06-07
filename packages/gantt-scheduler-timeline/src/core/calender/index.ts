@@ -6,12 +6,14 @@ import { BaseComponent } from "../component/base";
 import { DataStore } from "../data/dataStore";
 import { Dayjs } from "dayjs";
 import { GridLayout } from "../layout/gridLayout";
+import { isNil } from "lodash-es";
 
 export interface CalenderConfig {
   start: Dayjs;
   end: Dayjs;
   headers: Header[];
   unitWidth: number;
+  autoUnitWidth?: boolean;
 }
 
 export class Calender extends BaseComponent {
@@ -20,16 +22,19 @@ export class Calender extends BaseComponent {
   end: Dayjs;
   option: CalenderConfig;
   timelines: Timeline[] = [];
+  group: IGroup = createGroup({ clip: true });
   layout!: GridLayout;
   unitWidth: number;
+  autoUnitWidth: boolean = false;
   constructor(option: CalenderConfig, stage: Stage, timeScale: TimeScale) {
     super(stage, timeScale);
     this.option = option;
-    const { start, end, unitWidth } = option;
+    const { start, end, unitWidth, autoUnitWidth } = option;
     this.stage = stage;
     this.start = start;
     this.end = end;
     this.unitWidth = unitWidth;
+    !isNil(autoUnitWidth) && (this.autoUnitWidth = autoUnitWidth);
   }
 
   init() {
@@ -40,26 +45,42 @@ export class Calender extends BaseComponent {
         new Timeline(
           {
             ...v,
+            unitWidth: this.unitWidth,
           },
           this.stage,
           this.timeScale
         )
     );
+    this.updateScrollContentSize();
+  }
+
+  updateScrollContentSize() {
     const maxCount = Math.max(...this.timelines.map((v) => v.count));
-    this.layout.setColContentSize(this.colIndex!, maxCount * this.unitWidth);
+    if (!this.autoUnitWidth && !isNil(this.unitWidth)) {
+      this.layout.setColContentSize(this.colIndex!, maxCount * this.unitWidth);
+    }
   }
 
   reLayout() {
     const rect = this.getLayoutRect();
-    this.timelines.reduce((preTotalHeight, timeline) => {
+    const totalHeight = this.timelines.reduce((preTotalHeight, timeline) => {
       timeline.reLayout({
         ...rect,
-        y1: rect.y1 + preTotalHeight,
-        y2: rect.y1 + preTotalHeight + timeline.height,
+        y1: preTotalHeight,
+        y2: preTotalHeight + timeline.height,
         height: timeline.height,
+        x1: 0,
+        // x1: rect.x1,
       });
       return preTotalHeight + timeline.height;
     }, 0);
+
+    this.group.setAttributes({
+      x: rect.x1,
+      y: rect.y1,
+      width: rect.width,
+      height: totalHeight,
+    });
   }
 
   compile() {

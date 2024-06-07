@@ -17,6 +17,8 @@ export interface TimelineOptions extends Header {
   unit: Unit;
   step?: number;
   height: number;
+  unitWidth?: number;
+  autoFit: boolean;
 }
 
 export interface Tick {
@@ -31,6 +33,8 @@ export class Timeline {
   unit: Unit;
   height: number;
   step: number = 1;
+  unitWidth?: number = 0;
+  autoFit: boolean = false;
   count: number = 0;
   timeScale: TimeScale;
   graphics: IGraphic[] = [];
@@ -49,12 +53,14 @@ export class Timeline {
   ticks: Tick[] = [];
   format?: string;
   constructor(option: TimelineOptions, stage: Stage, timeScale: TimeScale) {
-    const { height, unit, step = 1, format } = option;
+    const { height, unit, step = 1, format, unitWidth, autoFit } = option;
     this.option = option;
     this.timeScale = timeScale;
     this.unit = unit;
     this.format = format;
     this.step = step;
+    this.unitWidth = unitWidth;
+    this.autoFit = autoFit;
     this.stage = stage;
     this.height = height;
     this.init();
@@ -124,8 +130,8 @@ export class Timeline {
       ];
 
       return {
-        x: range[0],
-        y: this.rect.y1,
+        x: range[0] - this.rect.offsetX,
+        y: this.rect.y1 - this.rect.offsetY,
         width: range[1] - range[0],
         height: this.height,
         text,

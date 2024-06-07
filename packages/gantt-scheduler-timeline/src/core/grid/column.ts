@@ -39,6 +39,8 @@ export class GridColumn {
     y2: 0,
     width: 0,
     height: 0,
+    offsetX: 0,
+    offsetY: 0,
   };
   field: string;
   width: number;
@@ -96,8 +98,8 @@ export class GridColumn {
       const rect = {
         // x: this.rect.x1,
         // y: this.rect.y1 + this.height * index,
-        x: 0,
-        y: 0 + this.height * index,
+        x: 0 - this.rect.offsetX,
+        y: 0 + this.height * index - this.rect.offsetY,
         width: this.rect.width,
         height: this.height,
       };

@@ -10,6 +10,7 @@ export interface ScheduleOptions {
   width?: number;
   height?: number;
   autoFit?: boolean;
+  autoUnitWidth?: boolean;
   columns?: Column[];
   headers?: Header[];
 }
@@ -70,6 +71,8 @@ export interface LayoutRect {
   y2: number;
   width: number;
   height: number;
+  offsetX: number;
+  offsetY: number;
 }
 
 // {
