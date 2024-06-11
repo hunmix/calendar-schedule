@@ -12,7 +12,8 @@ export interface GridOption {
 
 export class Grid extends BaseComponent {
   columns: GridColumn[] = [];
-  group: IGroup = createGroup({});
+  group: IGroup = createGroup({ clip: true });
+  innerGroup: IGroup = createGroup({});
   layout!: GridLayout;
   rowIndex?: number;
   colIndex?: number;
@@ -21,6 +22,7 @@ export class Grid extends BaseComponent {
   constructor(option: GridOption, stage: Stage, timeScale: TimeScale) {
     super(stage, timeScale);
     this.option = option;
+    this.group.add(this.innerGroup);
   }
 
   init() {
@@ -38,20 +40,36 @@ export class Grid extends BaseComponent {
     });
 
     // TODO:
-    const contentHeight = resourceData.length * this.height
+    const contentHeight = resourceData.length * this.height;
     this.layout.setRowContentSize(this.rowIndex!, contentHeight);
   }
 
   reLayout() {
     const rect = this.getLayoutRect();
-    console.log(this.layout)
+    this.group.setAttributes({
+      // x: rect.x1 - rect.offsetX,
+      // y: rect.y1 - rect.offsetY,
+      x: rect.x1,
+      y: rect.y1,
+      width: rect.width,
+      height: rect.height,
+    });
+    this.innerGroup.setAttributes({
+      // x: rect.x1 - rect.offsetX,
+      // y: rect.y1 - rect.offsetY,
+      x: -rect.offsetX,
+      y: -rect.offsetY,
+      width: rect.width,
+      height: rect.height,
+    });
+
     let x1 = 0;
     this.columns.forEach((column) => {
       column.reLayout({
         ...rect,
-        x1: rect.x1 + x1,
-        x2: rect.x1 + x1 + column.width,
-        y1: rect.y1,
+        x1: x1,
+        x2: x1 + column.width,
+        y1: 0,
         width: column.width!,
         offsetX: rect.offsetX,
         offsetY: rect.offsetY,
@@ -65,7 +83,7 @@ export class Grid extends BaseComponent {
   }
 
   compile() {
-    this.columns.forEach((column) => column.compile(this.group));
+    this.columns.forEach((column) => column.compile(this.innerGroup));
     this.stage.defaultLayer.add(this.group);
   }
 }

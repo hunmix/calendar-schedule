@@ -47,8 +47,8 @@ export class Task {
       timeScale.getValue(this.data.endTime),
     ];
     const rect = {
-      x: range[0] - this.rect.offsetX,
-      y: this.rect.y1 - this.rect.offsetY,
+      x: range[0],
+      y: this.rect.y1 + this.getRowId() * this.height,
       width: range[1] - range[0],
       height: this.height,
       offsetX: this.rect.offsetX,
@@ -77,7 +77,7 @@ export class Task {
 
   reLayout() {
     this.rect = this.getRect();
-    console.log(this.rect)
+    console.log(this.rect);
     this.barWidget?.relayout(this.rect);
   }
 

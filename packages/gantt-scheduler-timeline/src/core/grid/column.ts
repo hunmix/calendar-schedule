@@ -24,7 +24,7 @@ export interface GridColumnOption {
 
 export class GridColumn {
   option: GridColumnOption;
-  group: IGroup = createGroup({ clip: true });
+  group: IGroup = createGroup({});
   height: number = 50;
   resources: ResourceData[] = [];
   graphics: IGraphic[] = [];
@@ -98,8 +98,8 @@ export class GridColumn {
       const rect = {
         // x: this.rect.x1,
         // y: this.rect.y1 + this.height * index,
-        x: 0 - this.rect.offsetX,
-        y: 0 + this.height * index - this.rect.offsetY,
+        x: 0,
+        y: 0 + this.height * index,
         width: this.rect.width,
         height: this.height,
       };

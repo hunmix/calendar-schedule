@@ -10,10 +10,12 @@ export class Chart extends BaseComponent {
   dataStore!: DataStore;
   layout!: GridLayout;
   group: IGroup = createGroup({ clip: true });
+  innerGroup: IGroup = createGroup({});
   rowIndex?: number;
   colIndex?: number;
   constructor(stage: Stage, timeScale: TimeScale) {
     super(stage, timeScale);
+    this.group.add(this.innerGroup);
   }
 
   init() {
@@ -35,12 +37,16 @@ export class Chart extends BaseComponent {
       width: rect.width,
       height: rect.height,
     });
+    this.innerGroup.setAttributes({
+      // x: rect.x1 - rect.offsetX,
+      // y: rect.y1 - rect.offsetY,
+      x: -rect.offsetX,
+      y: -rect.offsetY,
+      width: rect.width,
+      height: rect.height,
+    });
     this.tasks.forEach((task) => {
-      task.updateLayout({
-        ...rect,
-        y1: rect.y1 + task.getRowId() * task.height,
-        x1: rect.x1,
-      });
+      task.updateLayout(rect);
     });
   }
 
@@ -58,7 +64,7 @@ export class Chart extends BaseComponent {
   }
 
   compile() {
-    this.tasks.forEach((task) => task.compile(this.group));
+    this.tasks.forEach((task) => task.compile(this.innerGroup));
     this.stage.defaultLayer.add(this.group);
   }
 }
