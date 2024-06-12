@@ -48,11 +48,12 @@ export class Task {
     ];
     const rect = {
       x: range[0],
-      y: this.rect.y1 + this.getRowId() * this.height,
+      // y: this.rect.y1,
+      y: this.getRowId() * this.height,
       width: range[1] - range[0],
       height: this.height,
-      offsetX: this.rect.offsetX,
-      offsetY: this.rect.offsetY,
+      // offsetX: this.rect.offsetX,
+      // offsetY: this.rect.offsetY,
     };
     return {
       x1: rect.x,
@@ -61,8 +62,8 @@ export class Task {
       y2: rect.y + rect.height,
       width: rect.width,
       height: rect.height,
-      offsetX: this.rect.offsetX,
-      offsetY: this.rect.offsetY,
+      // offsetX: this.rect.offsetX,
+      // offsetY: this.rect.offsetY,
     };
   }
 

@@ -4,9 +4,11 @@ import { DataStore } from "../data/dataStore";
 import { Task } from "./task/base";
 import { TimeScale } from "../timeScale";
 import { GridLayout } from "../layout/gridLayout";
+import { RectMark } from "../marks/rect";
 
 export class Chart extends BaseComponent {
   tasks: Task[] = [];
+  cells: RectMark[] = [];
   dataStore!: DataStore;
   layout!: GridLayout;
   group: IGroup = createGroup({ clip: true });

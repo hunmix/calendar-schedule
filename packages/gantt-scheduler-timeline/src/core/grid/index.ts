@@ -19,6 +19,7 @@ export class Grid extends BaseComponent {
   colIndex?: number;
   option: GridOption;
   height: number = 50;
+  count: number = 0;
   constructor(option: GridOption, stage: Stage, timeScale: TimeScale) {
     super(stage, timeScale);
     this.option = option;
@@ -40,8 +41,9 @@ export class Grid extends BaseComponent {
     });
 
     // TODO:
-    const contentHeight = resourceData.length * this.height;
-    this.layout.setRowContentSize(this.rowIndex!, contentHeight);
+    this.count = resourceData.length;
+    // const contentHeight = resourceData.length * this.height;
+    // this.layout.setRowContentSize(this.rowIndex!, contentHeight);
   }
 
   reLayout() {

@@ -27,6 +27,7 @@ export class Calender extends BaseComponent {
   layout!: GridLayout;
   unitWidth: number;
   autoUnitWidth: boolean = false;
+  count: number = 0;
   constructor(option: CalenderConfig, stage: Stage, timeScale: TimeScale) {
     super(stage, timeScale);
     this.option = option;
@@ -53,16 +54,7 @@ export class Calender extends BaseComponent {
           this.timeScale
         )
     );
-    this.updateScrollContentSize();
-  }
-
-  updateScrollContentSize() {
-    const maxCount = Math.max(...this.timelines.map((v) => v.count));
-    console.log(`maxCount: ${maxCount}`)
-    console.log(`maxLength: ${maxCount * this.unitWidth}`)
-    if (!this.autoUnitWidth && !isNil(this.unitWidth)) {
-      this.layout.setColContentSize(this.colIndex!, maxCount * this.unitWidth);
-    }
+    this.count = Math.max(...this.timelines.map((v) => v.count));
   }
 
   reLayout() {
@@ -93,8 +85,6 @@ export class Calender extends BaseComponent {
       width: rect.contentWidth || rect.width,
       height: rect.contentHeight || rect.height,
     });
-    console.log('rect')
-    console.log(rect)
   }
 
   compile() {

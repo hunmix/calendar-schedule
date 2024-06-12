@@ -2,12 +2,14 @@ import { IGroup, Stage, createGroup } from "@visactor/vrender";
 import { DataStore } from "../data/dataStore";
 import { GridLayout } from "../layout/gridLayout";
 import { TimeScale } from "../timeScale";
+import Schedule from "../schedule";
 
 export abstract class BaseComponent {
   dataStore!: DataStore;
   layout!: GridLayout;
   stage: Stage;
   timeScale: TimeScale;
+  schedule!: Schedule;
   group: IGroup = createGroup({});
   rowIndex?: number;
   colIndex?: number;
@@ -22,6 +24,10 @@ export abstract class BaseComponent {
 
   bindLayout(layout: GridLayout) {
     this.layout = layout;
+  }
+
+  bindInstance(schedule: Schedule) {
+    this.schedule = schedule;
   }
 
   bindData(dataStore: DataStore) {
@@ -56,4 +62,6 @@ export abstract class BaseComponent {
   compile() {}
 
   reLayout() {}
+
+  release() {}
 }

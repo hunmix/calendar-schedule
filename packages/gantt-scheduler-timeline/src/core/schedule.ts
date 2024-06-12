@@ -32,7 +32,7 @@ class Schedule {
   private layout!: GridLayout;
   private dataStore!: DataStore;
   private calenderHeight: number = 30;
-  private scrollbarWidth: number = 30;
+  private scrollbarWidth: number = 10;
   private unitWidth: number = 30;
   private autoUnitWidth: boolean = false;
   private minUnit: Unit = "day";
@@ -135,6 +135,14 @@ class Schedule {
     });
   }
 
+  getContainer() {
+    return this.container;
+  }
+
+  getChart() {
+    return this.chart;
+  }
+
   addComponent() {}
 
   initComponents() {
@@ -192,8 +200,15 @@ class Schedule {
     this.scrollX.addListenser("scroll", this.handleScroll);
     this.components.forEach((component) => component.bindData(this.dataStore));
     this.components.forEach((component) => component.bindLayout(this.layout));
+    this.components.forEach((component) => component.bindInstance(this));
     this.components.forEach((component) => component.init());
-    // TODO:
+
+    const chartRect = this.layout.getRectByIndex({
+      colIndex: 1,
+      rowIndex: 1,
+    });
+    // TODO
+    this.setContentSize(chartRect.width, chartRect.height);
     this.layout.reLayout();
     const rect = this.chart.getLayoutRect();
     this.timeScale.setRange([
@@ -206,7 +221,6 @@ class Schedule {
 
   private handleScroll = (e: any, payload: ScrollbarEventPayload) => {
     const { offset, direction } = payload;
-    console.log(offset)
     if (direction === "vertical") {
       this.layout.setRowOffset(this.scrollY?.rowIndex!, offset);
     } else if (direction === "horizontal") {
@@ -234,6 +248,22 @@ class Schedule {
     });
   }
 
+  private setContentSize(rectWidth: number, rectHeight: number) {
+    if (this.scrollX && !this.autoUnitWidth && !isNil(this.unitWidth)) {
+      this.layout.setColContentSize(
+        this.scrollX?.colIndex!,
+        Math.max(this.calender.count * this.unitWidth, rectWidth)
+      );
+    }
+    if (this.scrollY) {
+      const contentHeight = this.grid.count * this.grid.height;
+      this.layout.setRowContentSize(
+        this.grid.rowIndex!,
+        Math.max(contentHeight, rectHeight)
+      );
+    }
+  }
+
   private reLayout = (entry: ResizeObserverEntry, observer: ResizeObserver) => {
     const { contentRect } = entry;
     if (
@@ -253,20 +283,19 @@ class Schedule {
       rowIndex: 0,
       colIndex: 0,
     });
-    this.layout.setColSize(
-      1,
-      this.width - leftRect.width - this.scrollbarWidth
-    );
-    this.layout.setRowSize(
-      1,
-      this.height - leftRect.height - this.scrollbarWidth
-    );
+    const chartWidth = this.width - leftRect.width - this.scrollbarWidth;
+    const chartHeight = this.height - leftRect.height - this.scrollbarWidth;
+    this.layout.setColSize(1, chartWidth);
+    this.layout.setRowSize(1, chartHeight);
+
+    this.setContentSize(chartWidth, chartHeight);
     this.layout.reLayout();
     const rect = this.chart.getLayoutRect();
     this.timeScale.setRange([
       // rect.x1,
       0,
-      this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth,
+      rect.contentWidth,
+      // this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth,
     ]);
     this.components.forEach((v) => v.reLayout());
     this.render();
@@ -282,7 +311,7 @@ class Schedule {
   }
 
   release() {
-    // this.components.forEach(v => v.release())
+    this.components.forEach((v) => v.release());
     this.stage.release();
     this.resizeEventStore.release();
   }

@@ -55,6 +55,7 @@ export class BarWidget extends BaseWidget {
       textBaseline: "middle",
     });
     this.barMark.init();
+    this.titleMark.init();
     this.marks.push(this.barMark);
   }
 

@@ -111,8 +111,7 @@ export class Timeline {
       this.ticks.push({
         startTime: startDate.valueOf(),
         endTime: endDate.valueOf(),
-        // text: startDate.format(this.format ?? "YYYY-MM-DD"),
-        text: `${this.count}`,
+        text: startDate.format(this.format ?? "YYYY-MM-DD"),
       });
       this.count++;
       startDate = startDate.add(1, this.unit).startOf(this.unit);

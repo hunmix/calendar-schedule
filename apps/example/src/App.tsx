@@ -9,9 +9,9 @@ const App = () => {
       const schedule = new Schedule("canvas", {
         autoFit: true,
         startDate: "2024-03-20",
-        endDate: "2024-04-20",
+        endDate: "2024-06-10",
         columnWidth: 50,
-        unitWidth: 20,
+        unitWidth: 30,
         autoUnitWidth: false,
         scrollbar: [
           {
