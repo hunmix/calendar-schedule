@@ -77,7 +77,6 @@ export class Task {
 
   reLayout() {
     this.rect = this.getRect();
-    console.log(this.rect);
     this.barWidget?.relayout(this.rect);
   }
 

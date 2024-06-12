@@ -52,8 +52,7 @@ export class Scrollbar extends BaseComponent {
       opacity: 0.5,
     });
 
-    this.initScrollEvents()
-    
+    this.initScrollEvents();
   }
 
   private initScrollEvents() {
@@ -65,8 +64,8 @@ export class Scrollbar extends BaseComponent {
     this.scrollbar.getGraphic()?.addEventListener("mousemove", (v: any) => {
       if (this.isDragging) {
         const rect = this.getLayoutRect();
-        this.position =
-          this.direction === "vertical" ? rect.offsetY : rect.offsetX;
+        // this.position =
+        //   this.direction === "vertical" ? rect.offsetY : rect.offsetX;
         const curPos = this.direction === "vertical" ? v.canvas.y : v.canvas.x;
         const dragedLength = curPos - this.prevPosition;
         this.prevPosition = curPos;
@@ -78,13 +77,40 @@ export class Scrollbar extends BaseComponent {
             ? rect.contentHeight
             : rect.contentWidth;
 
-        const value =
-          this.position + (dragedLength / rectLength) * contentLength;
+        // const value =
+        //   this.position + (dragedLength / rectLength) * contentLength;
+
+        const curScrollLength = this.position + dragedLength;
+        const scrollLength = Math.min(Math.max(curScrollLength, 0), rectLength - this.barLength)
+        const offset = scrollLength / rectLength * contentLength;
+        this.position = scrollLength;
 
         this.trigger("scroll", v, {
-          offset: Math.min(Math.max(0, value), contentLength - (this.barLength / rectLength) * contentLength),
+          offset: -offset,
+          scrollLength,
           direction: this.direction,
         });
+        // const rect = this.getLayoutRect();
+        // this.position =
+        //   this.direction === "vertical" ? rect.offsetY : rect.offsetX;
+        // const curPos = this.direction === "vertical" ? v.canvas.y : v.canvas.x;
+        // const dragedLength = curPos - this.prevPosition;
+        // this.prevPosition = curPos;
+
+        // const rectLength =
+        //   this.direction === "vertical" ? rect.height : rect.width;
+        // const contentLength =
+        //   this.direction === "vertical"
+        //     ? rect.contentHeight
+        //     : rect.contentWidth;
+
+        // const value =
+        //   this.position + (dragedLength / rectLength) * contentLength;
+
+        // this.trigger("scroll", v, {
+        //   offset: Math.min(Math.max(0, value), contentLength - (this.barLength / rectLength) * contentLength),
+        //   direction: this.direction,
+        // });
       }
     });
     this.scrollbar.getGraphic()?.addEventListener("mouseup", (v) => {
@@ -112,25 +138,27 @@ export class Scrollbar extends BaseComponent {
 
   reLayout() {
     const rect = this.getLayoutRect();
+    this.group.setAttributes({
+      // x: rect.x1 - rect.offsetX,
+      // y: rect.y1 - rect.offsetY,
+      x: rect.x1,
+      y: rect.y1,
+      width: rect.width,
+      height: rect.height,
+    });
     if (this.direction === "horizontal") {
       this.barLength = (rect.width / rect.contentWidth) * rect.width;
-      const start =
-        rect.x1 + (Math.abs(rect.offsetX) / rect.contentWidth) * rect.width;
-      // const start =
-      //   rect.x1 + (Math.abs(rect.offsetX) * rect.width) / rect.contentWidth;
       this.scrollbar.update({
-        x: start,
-        y: rect.y1,
+        x: this.position,
+        y: 0,
         width: this.barLength,
         height: rect.height,
       });
     } else {
       this.barLength = (rect.height / rect.contentHeight) * rect.height;
-      const start =
-        rect.y1 + (Math.abs(rect.offsetY) / rect.contentHeight) * rect.height;
       this.scrollbar.update({
-        x: rect.x1,
-        y: start,
+        x: 0,
+        y: this.position,
         width: rect.width,
         height: this.barLength,
       });

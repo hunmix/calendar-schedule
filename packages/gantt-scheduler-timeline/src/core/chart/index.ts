@@ -40,8 +40,8 @@ export class Chart extends BaseComponent {
     this.innerGroup.setAttributes({
       // x: rect.x1 - rect.offsetX,
       // y: rect.y1 - rect.offsetY,
-      x: -rect.offsetX,
-      y: -rect.offsetY,
+      x: rect.offsetX,
+      y: rect.offsetY,
       width: rect.width,
       height: rect.height,
     });

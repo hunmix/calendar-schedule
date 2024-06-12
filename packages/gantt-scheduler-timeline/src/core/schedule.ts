@@ -206,6 +206,7 @@ class Schedule {
 
   private handleScroll = (e: any, payload: ScrollbarEventPayload) => {
     const { offset, direction } = payload;
+    console.log(offset)
     if (direction === "vertical") {
       this.layout.setRowOffset(this.scrollY?.rowIndex!, offset);
     } else if (direction === "horizontal") {
