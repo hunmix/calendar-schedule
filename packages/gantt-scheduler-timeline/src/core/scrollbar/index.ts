@@ -75,23 +75,14 @@ export class Scrollbar extends BaseComponent {
 
   private wheel = throttle((e: any) => {
     const { nativeEvent } = e;
-    const direction = nativeEvent.shiftKey ? "horizontal" : "vertical";
-    if (this.direction !== direction) return;
-
-    let dragedLength = 0;
-    const rect = this.getLayoutRect();
-    const rectLength = direction === "vertical" ? rect.height : rect.width;
-
-    const scrollLength = Math.max(20, (rectLength - this.barLength) / 10);
-    if (nativeEvent.wheelDelta < 0) {
-      dragedLength = scrollLength;
-    } else if (nativeEvent.wheelDelta > 0) {
-      dragedLength = -scrollLength;
-    }
+    nativeEvent.preventDefault();
+    nativeEvent.stopPropagation();
+ 
+    const dragedLength = this.direction === 'horizontal'? nativeEvent.deltaX : nativeEvent.deltaY;
     this.prevPosition += dragedLength;
 
-    this.updateScrollPosition(e, direction, dragedLength);
-  }, 50);
+    this.updateScrollPosition(e, this.direction, dragedLength);
+  }, 30);
 
   private scrollMouseUp = () => {
     this.isDragging = false;
@@ -105,7 +96,7 @@ export class Scrollbar extends BaseComponent {
 
       this.updateScrollPosition(e, this.direction, dragedLength);
     }
-  }, 50);
+  }, 30);
 
   private updateScrollPosition(
     e: any,

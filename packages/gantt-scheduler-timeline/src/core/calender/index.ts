@@ -57,6 +57,11 @@ export class Calender extends BaseComponent {
     this.count = Math.max(...this.timelines.map((v) => v.count));
   }
 
+  getTicks() {
+    // TODO: implement the common logic of getTicks
+    return this.timelines[this.timelines.length - 1].getTicks();
+  }
+
   reLayout() {
     const rect = this.getLayoutRect();
     const totalHeight = this.timelines.reduce((preTotalHeight, timeline) => {

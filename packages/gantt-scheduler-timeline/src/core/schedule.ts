@@ -143,6 +143,10 @@ class Schedule {
     return this.chart;
   }
 
+  getTicks() {
+    return this.calender.getTicks();
+  }
+
   addComponent() {}
 
   initComponents() {

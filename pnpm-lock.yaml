@@ -26,6 +26,9 @@ importers:
 
   apps/example:
     dependencies:
+      dayjs:
+        specifier: ^1.11.11
+        version: 1.11.11
       gantt-scheduler-timeline:
         specifier: workspace:*
         version: link:../../packages/gantt-scheduler-timeline

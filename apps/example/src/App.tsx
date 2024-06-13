@@ -1,9 +1,52 @@
 import { Schedule } from "gantt-scheduler-timeline";
 import React, { useEffect, useRef, useState } from "react";
+import dayjs from "dayjs";
 import "./App.css";
+
+const clamp = (value: number, min: number, max: number, ) => {
+  return Math.max(min, Math.min(max, value));
+};
 
 const App = () => {
   const scheduleRef = useRef<Schedule | null>(null);
+  const generateResources = (count: number) => {
+    const resources = [];
+    for (let i = 0; i < count; i++) {
+      resources.push({
+        id: `${i}`,
+        name: `${i}`,
+        tag: `tag${i}`,
+      });
+    }
+    return resources;
+  };
+  
+  const generateRandomTasks = (count: number, start: string, end: string) => {
+    const tasks = [];
+    const startDate = dayjs(start);
+    const endDate = dayjs(end);
+    const dayDuration = endDate.diff(startDate, "day");
+    for (let i = 0; i < count; i++) {
+      const randomStartLength = Math.floor(Math.random() * dayDuration);
+      console.log(randomStartLength);
+      const currentStartDate = startDate.add(randomStartLength, "days");
+      tasks.push({
+        id: `${i}`,
+        resourceId: `${Math.floor(Math.random() * count)}`,
+        title: `title${i}`,
+        start: currentStartDate.format("YYYY-MM-DD"),
+        end: currentStartDate
+          .add(
+            Math.ceil(Math.random() * clamp(dayDuration - randomStartLength, 2, 8)),
+            "day"
+          )
+          .format("YYYY-MM-DD"),
+        name: `name${i}`,
+        type: `type1${i}`,
+      });
+    }
+    return tasks;
+  };
   useEffect(() => {
     if (!scheduleRef.current) {
       const schedule = new Schedule("canvas", {
@@ -46,110 +89,55 @@ const App = () => {
             width: 120,
           },
         ],
-        tasks: [
-          {
-            id: "1",
-            resourceId: "1",
-            title: "title1",
-            start: "2024-03-23 14:09",
-            end: "2024-03-25 21:09",
-            name: "name1",
-            type: "type1",
-          },
-          {
-            id: "2",
-            resourceId: "2",
-            title: "title2",
-            start: "2024-04-02 16:09",
-            end: "2024-04-06 21:09",
-            name: "name2",
-            type: "type2",
-          },
-          {
-            id: "3",
-            resourceId: "3",
-            title: "title1",
-            start: "2024-05-01",
-            end: "2024-05-03",
-            name: "name1",
-            type: "type1",
-          },
-          {
-            id: "4",
-            resourceId: "1",
-            title: "title4",
-            start: "2024-05-01",
-            end: "2024-05-03",
-            name: "name4",
-            type: "type1",
-          },
-          {
-            id: "5",
-            resourceId: "10",
-            title: "title5",
-            start: "2024-05-01",
-            end: "2024-05-03",
-            name: "name5",
-            type: "type1",
-          },
-        ],
-        resources: [
-          {
-            id: "1",
-            name: "A",
-            tag: "tag1",
-          },
-          {
-            id: "2",
-            name: "B",
-            tag: "tag2",
-          },
-          {
-            id: "3",
-            name: "C",
-            tag: "tag3",
-          },
-          {
-            id: "4",
-            name: "D",
-            tag: "tag4",
-          },
-          {
-            id: "5",
-            name: "E",
-            tag: "tag5",
-          },
-          {
-            id: "6",
-            name: "F",
-            tag: "tag6",
-          },
-          {
-            id: "7",
-            name: "G",
-            tag: "tag7",
-          },
-          {
-            id: "8",
-            name: "H",
-            tag: "tag8",
-          },
-          {
-            id: "9",
-            name: "I",
-            tag: "tag9",
-          },
-          {
-            id: "10",
-            name: "J",
-            tag: "tag10",
-          },
-          {
-            id: "11",
-            name: "K",
-            tag: "tag11",
-          },
-        ],
+        tasks: generateRandomTasks(100, "2024-03-20", "2024-06-10"),
+        // tasks: [
+        //   {
+        //     id: "1",
+        //     resourceId: "1",
+        //     title: "title1",
+        //     start: "2024-03-23 14:09",
+        //     end: "2024-03-25 21:09",
+        //     name: "name1",
+        //     type: "type1",
+        //   },
+        //   {
+        //     id: "2",
+        //     resourceId: "2",
+        //     title: "title2",
+        //     start: "2024-04-02 16:09",
+        //     end: "2024-04-06 21:09",
+        //     name: "name2",
+        //     type: "type2",
+        //   },
+        //   {
+        //     id: "3",
+        //     resourceId: "3",
+        //     title: "title1",
+        //     start: "2024-05-01",
+        //     end: "2024-05-03",
+        //     name: "name1",
+        //     type: "type1",
+        //   },
+        //   {
+        //     id: "4",
+        //     resourceId: "1",
+        //     title: "title4",
+        //     start: "2024-05-01",
+        //     end: "2024-05-03",
+        //     name: "name4",
+        //     type: "type1",
+        //   },
+        //   {
+        //     id: "5",
+        //     resourceId: "10",
+        //     title: "title5",
+        //     start: "2024-05-01",
+        //     end: "2024-05-03",
+        //     name: "name5",
+        //     type: "type1",
+        //   },
+        // ],
+        resources: generateResources(100),
       });
       scheduleRef.current = schedule;
       console.log(schedule);
