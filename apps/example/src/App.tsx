@@ -28,7 +28,6 @@ const App = () => {
     const dayDuration = endDate.diff(startDate, "day");
     for (let i = 0; i < count; i++) {
       const randomStartLength = Math.floor(Math.random() * dayDuration);
-      console.log(randomStartLength);
       const currentStartDate = startDate.add(randomStartLength, "days");
       tasks.push({
         id: `${i}`,
@@ -89,7 +88,7 @@ const App = () => {
             width: 120,
           },
         ],
-        tasks: generateRandomTasks(100, "2024-03-20", "2024-06-10"),
+        tasks: generateRandomTasks(200, "2024-03-20", "2024-06-10"),
         // tasks: [
         //   {
         //     id: "1",
@@ -137,7 +136,7 @@ const App = () => {
         //     type: "type1",
         //   },
         // ],
-        resources: generateResources(100),
+        resources: generateResources(200),
       });
       scheduleRef.current = schedule;
       console.log(schedule);

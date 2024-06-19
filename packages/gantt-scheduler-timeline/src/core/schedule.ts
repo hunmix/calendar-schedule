@@ -12,10 +12,17 @@ import { Grid } from "./grid";
 import { Header as GridHeader } from "./gridHeader";
 import { Scrollbar, ScrollbarEventPayload } from "./scrollbar";
 import { isNil } from "lodash-es";
+import { LinkedList } from './utils/linkedList'
 
 class Schedule {
   private container: HTMLElement;
   private options: ScheduleOptions;
+  private headerRowHeightMap: Map<number, number> = new Map();
+  private bodyRowHeightMap: Map<number, number> = new Map();
+  private bodyColWidthMap: Map<number, number> = new Map();
+  private resourceColumnWidthMap: number[] = []
+  private calenderRowHeightMap: number[] = []
+  private resourceRowHeightMap: LinkedList<number> = new LinkedList()
   private stage!: Stage;
   private startDate!: Dayjs;
   private endDate!: Dayjs;
@@ -33,6 +40,7 @@ class Schedule {
   private dataStore!: DataStore;
   private calenderHeight: number = 30;
   private scrollbarWidth: number = 10;
+  private bodyRowHeight: number = 50;
   private unitWidth: number = 30;
   private autoUnitWidth: boolean = false;
   private minUnit: Unit = "day";
@@ -69,13 +77,27 @@ class Schedule {
     !isNil(unitWidth) && (this.unitWidth = unitWidth);
     !isNil(autoUnitWidth) && (this.autoUnitWidth = autoUnitWidth);
 
-    (this.minUnit = headers ? headers[headers.length - 1].unit : "day"), // TODO:
-      this.init();
+    this.minUnit = headers ? headers[headers.length - 1].unit : "day"; // TODO:
+    this.init();
+  }
+
+  private initLayoutInfo() {
+    console.log(this.options)
+    console.log(this.stage.defaultLayer)
+    // private headerRowHeightMap: Map<number, number> = new Map();
+    // private bodyRowHeightMap: Map<number, number> = new Map();
+    // private bodyColWidthMap: Map<number, number> = new Map();
+    // private resourceColumnWidthMap: number[] = []
+    // private calenderRowHeightMap: number[] = []
+    // private resourceRowHeightMap: LinkedList<number> = new LinkedList()
+    this.dataStore.getReources().forEach(() => this.resourceRowHeightMap.append(this.bodyRowHeight))
+    console.log(this.resourceRowHeightMap)
   }
 
   private init() {
     this.initRenderer();
     this.initData();
+    this.initLayoutInfo();
     this.initLayout();
     this.initTimeScale();
     this.initComponents();
