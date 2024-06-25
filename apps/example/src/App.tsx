@@ -150,6 +150,7 @@ const App = () => {
   return (
     <div className="canvas-wrapper">
       <div id="canvas"></div>
+      <div id="canvas2"></div>
     </div>
   );
 };

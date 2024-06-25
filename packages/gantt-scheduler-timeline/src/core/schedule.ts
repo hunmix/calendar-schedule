@@ -12,7 +12,24 @@ import { Grid } from "./grid";
 import { Header as GridHeader } from "./gridHeader";
 import { Scrollbar, ScrollbarEventPayload } from "./scrollbar";
 import { isNil } from "lodash-es";
-import { LinkedList } from './utils/linkedList'
+import { LinkedList } from "./utils/linkedList";
+import { Scenegraph } from "./scenegraph";
+
+export interface Tick {
+  text: string;
+  startTime: number;
+  endTime: number;
+  value: number;
+  // x1: number;
+  // x2: number;
+}
+
+export interface CalenderData {
+  ticks: Tick[];
+  rowIndex: number;
+  height: number;
+  y: number;
+}
 
 class Schedule {
   private container: HTMLElement;
@@ -20,9 +37,13 @@ class Schedule {
   private headerRowHeightMap: Map<number, number> = new Map();
   private bodyRowHeightMap: Map<number, number> = new Map();
   private bodyColWidthMap: Map<number, number> = new Map();
-  private resourceColumnWidthMap: number[] = []
-  private calenderRowHeightMap: number[] = []
-  private resourceRowHeightMap: LinkedList<number> = new LinkedList()
+  private resourceColumnWidthMap: number[] = [];
+  private calenderRowHeightMap: number[] = [];
+  private rowHeightMap: number[] = [];
+  private resourceRowHeightMap: LinkedList<number> = new LinkedList();
+  private calenderData: CalenderData[] = [];
+  calenderTotalHeight: number;
+  private scenegraph: Scenegraph;
   private stage!: Stage;
   private startDate!: Dayjs;
   private endDate!: Dayjs;
@@ -30,8 +51,8 @@ class Schedule {
   private calender!: Calender;
   private grid!: Grid;
   private header!: GridHeader;
-  private width: number = 500;
-  private height: number = 500;
+  width: number = 500;
+  height: number = 500;
   private autoFit: boolean = true;
   private timeScale!: TimeScale;
   private resizeEventStore: ResizeEventStore;
@@ -78,20 +99,75 @@ class Schedule {
     !isNil(autoUnitWidth) && (this.autoUnitWidth = autoUnitWidth);
 
     this.minUnit = headers ? headers[headers.length - 1].unit : "day"; // TODO:
+
+    this.scenegraph = new Scenegraph(this);
     this.init();
   }
 
   private initLayoutInfo() {
-    console.log(this.options)
-    console.log(this.stage.defaultLayer)
+    console.log(this.options);
+    console.log(this.stage.defaultLayer);
     // private headerRowHeightMap: Map<number, number> = new Map();
     // private bodyRowHeightMap: Map<number, number> = new Map();
     // private bodyColWidthMap: Map<number, number> = new Map();
     // private resourceColumnWidthMap: number[] = []
     // private calenderRowHeightMap: number[] = []
     // private resourceRowHeightMap: LinkedList<number> = new LinkedList()
-    this.dataStore.getReources().forEach(() => this.resourceRowHeightMap.append(this.bodyRowHeight))
-    console.log(this.resourceRowHeightMap)
+    this.rowHeightMap = new Array(this.dataStore.getReources().length).fill(
+      this.bodyRowHeight
+    );
+    console.log(this.rowHeightMap);
+    // calc ticks
+    this.startDate = this.startDate.startOf(this.minUnit);
+    this.endDate = this.endDate.endOf(this.minUnit);
+
+    const { headers = [] } = this.options;
+
+    this.calenderTotalHeight = headers.reduce((height, header, index) => {
+      const ticks = this.generateTicks(header);
+      this.calenderData.push({
+        rowIndex: index,
+        height: this.calenderHeight,
+        y: height,
+        ticks,
+      });
+      return height + (header?.height ?? this.calenderHeight);
+    }, 0);
+    this.scenegraph.initLayout();
+    this.scenegraph.initComponents();
+
+    // this.timeScale = new TimeScale({
+    //   domain: [
+    //     this.startDate.startOf(this.minUnit).valueOf(),
+    //     this.endDate.endOf(this.minUnit).valueOf(),
+    //   ],
+    //   // range: [rect.x1, rect.x2],
+    //   range: [0, rect.contentWidth ?? rect.width],
+    // });
+  }
+
+  private generateTicks(options: Header) {
+    let startDate = this.startDate;
+    const { unit, format } = options;
+    const ticks = [];
+    while (startDate.isBefore(this.endDate)) {
+      let endDate = startDate.endOf(unit);
+      if (endDate.isAfter(this.endDate)) {
+        endDate = this.endDate;
+      }
+      ticks.push({
+        startTime: startDate.valueOf(),
+        endTime: endDate.valueOf(),
+        text: startDate.format(format ?? "YYYY-MM-DD"),
+        value: startDate.valueOf(),
+      });
+      startDate = startDate.add(1, unit).startOf(unit);
+    }
+    return ticks;
+  }
+
+  getCalenderData() {
+    return this.calenderData;
   }
 
   private init() {
@@ -270,7 +346,7 @@ class Schedule {
       container: this.container,
       width: this.width,
       height: this.height,
-      // autoRender: true,
+      autoRender: false,
     });
   }
 
@@ -333,12 +409,14 @@ class Schedule {
 
   render() {
     this.stage.render();
+    this.scenegraph.render();
     console.log("render");
   }
 
   release() {
     this.components.forEach((v) => v.release());
     this.stage.release();
+    this.scenegraph.release();
     this.resizeEventStore.release();
   }
 }
