@@ -39,34 +39,52 @@ export class Scenegraph {
       autoRender: false,
     });
     this.stage.defaultLayer.add(this.mainGroup);
-    this.resizeEventStore.observe(container, this.resize);
+    // this.resizeEventStore.observe(container, this.resize);
   }
 
   initLayout() {
+    this.updateLayout()
+    this.mainGroup.add(this.resouceGroup);
+    this.mainGroup.add(this.chartGroup);
+    this.mainGroup.add(this.calenderGroup);
+    this.mainGroup.add(this.resourceHeaderGroup);
+  }
+
+  updateLayout() {
+    this.stage.width = this.schedule.width;
+    this.stage.height = this.schedule.height;
     this.mainGroup.setAttributes({
       x: 0,
       y: 0,
       height: this.schedule.height,
       width: this.schedule.width,
     });
+    this.chartGroup.setAttributes({
+      x: 0,
+      y: 0,
+      height: this.schedule.height,
+      width: this.schedule.width,
+    });
+    this.chartGroup.setAttributes({
+      x: this.schedule.columnTotalWidth,
+      y: this.schedule.calenderTotalHeight,
+      height: this.schedule.height,
+      width: this.schedule.width - this.schedule.columnTotalWidth,
+    });
     this.resouceGroup.setAttributes({
       x: 0,
       y: this.schedule.calenderTotalHeight,
       height: this.schedule.height - this.schedule.calenderTotalHeight,
-      width: 70,
-      fill: "red",
+      width: this.schedule.columnTotalWidth,
+      fill: "orange",
     });
     this.calenderGroup.setAttributes({
-      x: 0,
+      x: this.schedule.columnTotalWidth,
       y: 0,
       height: this.schedule.calenderTotalHeight,
       width: this.schedule.width,
+      fill: 'lightblue'
     });
-    console.log(this.resouceGroup.AABBBounds);
-    this.mainGroup.add(this.resouceGroup);
-    this.mainGroup.add(this.chartGroup);
-    this.mainGroup.add(this.calenderGroup);
-    this.mainGroup.add(this.resourceHeaderGroup);
   }
 
   initComponents() {
@@ -75,13 +93,19 @@ export class Scenegraph {
     const calanederMarks: CalenderCell[] = [];
     calenderData.forEach((data) => {
       const { ticks, height, y } = data;
-      ticks.forEach((tick) => {
+      ticks.forEach(tick => {
+        const { startTime, endTime } = tick
+        const timeScale = this.schedule.getTimeScale()
+        const range = [
+          timeScale.getValue(startTime),
+          timeScale.getValue(endTime),
+        ];
         calanederMarks.push(
           new CalenderCell(
             {
-              x: 0,
+              x: range[0],
               y: y,
-              width: 70,
+              width: range[1] - range[0],
               height: height,
             },
             tick
@@ -92,13 +116,9 @@ export class Scenegraph {
     calanederMarks.forEach((v) => v.append(this.calenderGroup));
   }
 
-  resize = (entry: ResizeObserverEntry, observer: ResizeObserver) => {
-    const { contentRect } = entry;
-    console.log("resize");
-    console.log({
-      width: contentRect.width,
-      height: contentRect.height,
-    });
+  resize() {
+    this.updateLayout()
+    this.render()
   };
 
   render() {

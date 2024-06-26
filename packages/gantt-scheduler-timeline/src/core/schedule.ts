@@ -43,6 +43,8 @@ class Schedule {
   private resourceRowHeightMap: LinkedList<number> = new LinkedList();
   private calenderData: CalenderData[] = [];
   calenderTotalHeight: number;
+  bodyContentWidth: number;
+  columnTotalWidth: number;
   private scenegraph: Scenegraph;
   private stage!: Stage;
   private startDate!: Dayjs;
@@ -121,7 +123,7 @@ class Schedule {
     this.startDate = this.startDate.startOf(this.minUnit);
     this.endDate = this.endDate.endOf(this.minUnit);
 
-    const { headers = [] } = this.options;
+    const { headers = [], columns = [] } = this.options;
 
     this.calenderTotalHeight = headers.reduce((height, header, index) => {
       const ticks = this.generateTicks(header);
@@ -133,23 +135,27 @@ class Schedule {
       });
       return height + (header?.height ?? this.calenderHeight);
     }, 0);
+
+    this.bodyContentWidth =
+      this.calenderData[this.calenderData.length - 1].ticks.length *
+      this.unitWidth;
+    this.columnTotalWidth = columns.reduce((prev, cur) => prev + cur.width, 0);
+    
+    this.timeScale = new TimeScale({
+      domain: [this.startDate.valueOf(), this.endDate.valueOf()],
+      // range: [rect.x1, rect.x2],
+      range: [0, this.bodyContentWidth],
+    });
+  
     this.scenegraph.initLayout();
     this.scenegraph.initComponents();
-
-    // this.timeScale = new TimeScale({
-    //   domain: [
-    //     this.startDate.startOf(this.minUnit).valueOf(),
-    //     this.endDate.endOf(this.minUnit).valueOf(),
-    //   ],
-    //   // range: [rect.x1, rect.x2],
-    //   range: [0, rect.contentWidth ?? rect.width],
-    // });
   }
 
   private generateTicks(options: Header) {
     let startDate = this.startDate;
     const { unit, format } = options;
     const ticks = [];
+    let count = 0
     while (startDate.isBefore(this.endDate)) {
       let endDate = startDate.endOf(unit);
       if (endDate.isAfter(this.endDate)) {
@@ -159,8 +165,10 @@ class Schedule {
         startTime: startDate.valueOf(),
         endTime: endDate.valueOf(),
         text: startDate.format(format ?? "YYYY-MM-DD"),
+        // unitWidth: this.unitWidth,
         value: startDate.valueOf(),
       });
+      count += 1
       startDate = startDate.add(1, unit).startOf(unit);
     }
     return ticks;
@@ -168,6 +176,10 @@ class Schedule {
 
   getCalenderData() {
     return this.calenderData;
+  }
+
+  getTimeScale() {
+    return this.timeScale;
   }
 
   private init() {
@@ -179,7 +191,26 @@ class Schedule {
     this.initComponents();
     this.compile();
     this.render();
-    this.resizeEventStore.observe(this.container, this.reLayout);
+    this.resizeEventStore.observe(this.container, this.triggerResize);
+    // this.resizeEventStore.observe(this.container, this.resize);
+  }
+
+  private triggerResize = (entry: ResizeObserverEntry, observer: ResizeObserver) => {
+    // this.reLayout(entry, observer)
+    this.resize(entry, observer)
+  }
+
+  private resize = (entry: ResizeObserverEntry, observer: ResizeObserver) => {
+    const { contentRect } = entry;
+    if (
+      this.width === contentRect?.width &&
+      this.height === contentRect?.height
+    ) {
+      return;
+    }
+    this.width = contentRect?.width ?? this.width;
+    this.height = contentRect?.height ?? this.height;
+    this.scenegraph.resize()
   }
 
   private initData() {
@@ -223,14 +254,14 @@ class Schedule {
       colIndex: 1,
       rowIndex: 1,
     });
-    this.timeScale = new TimeScale({
-      domain: [
-        this.startDate.startOf(this.minUnit).valueOf(),
-        this.endDate.endOf(this.minUnit).valueOf(),
-      ],
-      // range: [rect.x1, rect.x2],
-      range: [0, rect.contentWidth ?? rect.width],
-    });
+    // this.timeScale = new TimeScale({
+    //   domain: [
+    //     this.startDate.startOf(this.minUnit).valueOf(),
+    //     this.endDate.endOf(this.minUnit).valueOf(),
+    //   ],
+    //   // range: [rect.x1, rect.x2],
+    //   range: [0, rect.contentWidth ?? rect.width],
+    // });
   }
 
   getContainer() {
@@ -313,11 +344,11 @@ class Schedule {
     this.setContentSize(chartRect.width, chartRect.height);
     this.layout.reLayout();
     const rect = this.chart.getLayoutRect();
-    this.timeScale.setRange([
-      // rect.x1,
-      0,
-      this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth, // TODO: layout item should to calc the contentHeight automatically
-    ]);
+    // this.timeScale.setRange([
+    //   // rect.x1,
+    //   0,
+    //   this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth, // TODO: layout item should to calc the contentHeight automatically
+    // ]);
     this.components.forEach((v) => v.reLayout());
   }
 
