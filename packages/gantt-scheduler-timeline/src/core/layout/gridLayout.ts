@@ -1,4 +1,6 @@
+import { Group } from "@visactor/vrender";
 import { LayoutItem } from "./layoutItem";
+import { LayoutGroup } from "../component/group";
 
 export interface GridLayoutOption {
   cols: number;
@@ -118,6 +120,14 @@ export class GridLayout {
   }
   getColSize(index: number) {
     return this.colsSize[index];
+  }
+
+  bind(option: { colIndex: number, rowIndex: number, group: LayoutGroup }) {
+    const { rowIndex, colIndex, group } = option;
+    const layoutItem = this.rows[rowIndex][colIndex];
+    layoutItem.bind(group)
+    // TODO:
+    group.bindLayout(layoutItem)
   }
 
   reLayout() {

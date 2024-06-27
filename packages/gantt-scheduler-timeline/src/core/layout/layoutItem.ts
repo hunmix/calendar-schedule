@@ -1,4 +1,6 @@
+import { Group, IGroup } from "@visactor/vrender";
 import { isNil } from "lodash-es";
+import { LayoutGroup } from "../component/group";
 
 export interface LayoutItemOption {
   x1?: number;
@@ -25,6 +27,7 @@ export class LayoutItem {
   offsetX: number = 0;
   offsetY: number = 0;
   resizeEvents: ((item: LayoutItem) => void)[] = [];
+  groups: LayoutGroup[] = []
   constructor() {}
 
   setAttr(attrs: LayoutItemOption) {
@@ -48,6 +51,13 @@ export class LayoutItem {
     } else {
       throw Error(`${field} is invalid`);
     }
+  }
+
+  bind(group: LayoutGroup) {
+    if (this.groups.find(v => v === group)) {
+      throw Error('group is already bound')
+    }
+    this.groups.push(group)
   }
 
   getRect() {
