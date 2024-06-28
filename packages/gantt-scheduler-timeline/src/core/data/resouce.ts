@@ -12,12 +12,12 @@ export class ResourceData {
   endTime: number;
   formatMethod?: FormatMethod;
   originData: ResourceOption;
-  rowId: number;
+  rowIndex: number;
 
   constructor(option: ResourceOption) {
-    const { id, rowId, field, formatMethod, start, end } = option;
+    const { id, rowIndex, field, formatMethod, start, end } = option;
     this.id = id;
-    this.rowId = rowId;
+    this.rowIndex = rowIndex;
     this.field = field;
     this.startDate = dayjs(start);
     this.endDate = dayjs(end);
@@ -27,10 +27,10 @@ export class ResourceData {
     this.formatMethod = formatMethod;
   }
 
-  getTitle() {
-    const title = this.originData[this.field];
+  getTitle(field: string) {
+    const title = this.originData[field];
     return this.formatMethod
-      ? this.formatMethod(title, this.originData, this.field)
+      ? this.formatMethod(title, this.originData, field)
       : title;
   }
 }

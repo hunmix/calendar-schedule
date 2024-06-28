@@ -3,13 +3,9 @@ import dayjs, { Dayjs } from "dayjs";
 import { Header, ScheduleOptions, TaskOption, Unit } from "../types/core";
 import { ResizeEventStore } from "./resizeEventStore";
 import { TimeScale } from "./timeScale";
-import { Calender } from "./calender";
-import { Chart } from "./chart";
 import { BaseComponent } from "./component/base";
 import { DataStore } from "./data/dataStore";
 import { GridLayout } from "./layout/gridLayout";
-import { Grid } from "./grid";
-import { Header as GridHeader } from "./gridHeader";
 import { Scrollbar, ScrollbarEventPayload } from "./scrollbar";
 import { isNil } from "lodash-es";
 import { LinkedList } from "./utils/linkedList";
@@ -44,15 +40,12 @@ class Schedule {
   private calenderData: CalenderData[] = [];
   calenderTotalHeight: number;
   bodyContentWidth: number;
+  bodyContentHeight: number;
   columnTotalWidth: number;
   private scenegraph: Scenegraph;
   private stage!: Stage;
   private startDate!: Dayjs;
   private endDate!: Dayjs;
-  private chart!: Chart;
-  private calender!: Calender;
-  private grid!: Grid;
-  private header!: GridHeader;
   width: number = 500;
   height: number = 500;
   private autoFit: boolean = true;
@@ -62,8 +55,9 @@ class Schedule {
   private layout!: GridLayout;
   private dataStore!: DataStore;
   private calenderHeight: number = 30;
-  private scrollbarWidth: number = 10;
-  private bodyRowHeight: number = 50;
+  scrollbarWidth: number = 10;
+  bodyRowHeight: number = 50;
+  taskbarHeight: number = 30;
   private unitWidth: number = 30;
   private autoUnitWidth: boolean = false;
   private minUnit: Unit = "day";
@@ -106,19 +100,11 @@ class Schedule {
     this.init();
   }
 
-  private initLayoutInfo() {
-    console.log(this.options);
-    console.log(this.stage.defaultLayer);
-    // private headerRowHeightMap: Map<number, number> = new Map();
-    // private bodyRowHeightMap: Map<number, number> = new Map();
-    // private bodyColWidthMap: Map<number, number> = new Map();
-    // private resourceColumnWidthMap: number[] = []
-    // private calenderRowHeightMap: number[] = []
-    // private resourceRowHeightMap: LinkedList<number> = new LinkedList()
+  private initLayout() {
+    this.resourceColumnWidthMap = [];
     this.rowHeightMap = new Array(this.dataStore.getReources().length).fill(
       this.bodyRowHeight
     );
-    console.log(this.rowHeightMap);
     // calc ticks
     this.startDate = this.startDate.startOf(this.minUnit);
     this.endDate = this.endDate.endOf(this.minUnit);
@@ -139,23 +125,83 @@ class Schedule {
     this.bodyContentWidth =
       this.calenderData[this.calenderData.length - 1].ticks.length *
       this.unitWidth;
-    this.columnTotalWidth = columns.reduce((prev, cur) => prev + cur.width, 0);
-    
+    this.bodyContentHeight =
+      this.dataStore.getReources().length * this.bodyRowHeight;
+    this.columnTotalWidth = columns.reduce((prev, cur, index) => {
+      this.resourceColumnWidthMap.push(cur.width);
+      return prev + cur.width;
+    }, 0);
+
     this.timeScale = new TimeScale({
       domain: [this.startDate.valueOf(), this.endDate.valueOf()],
-      // range: [rect.x1, rect.x2],
       range: [0, this.bodyContentWidth],
     });
-  
+
     this.scenegraph.initLayout();
     this.scenegraph.initComponents();
+  }
+
+  getResourceColWidth(index: number) {
+    return this.resourceColumnWidthMap[index];
+  }
+
+  getOption() {
+    return this.options;
+  }
+
+  getResourceData() {
+    const { columns = [] } = this.options;
+    const resources = this.dataStore.getReources();
+    const res: any = [];
+    columns.reduce((colPrev, colCurrent, index) => {
+      const width = this.getResourceColWidth(index);
+      resources.reduce((prev, current, rowIndex) => {
+        const height = this.rowHeightMap[rowIndex];
+        res.push({
+          colIndex: index,
+          field: colCurrent.field,
+          width,
+          y: prev,
+          x: colPrev,
+          height,
+          name: current.getTitle(colCurrent.field),
+          rowIndex,
+        });
+        return prev + height;
+      }, 0);
+      return colPrev + width;
+    }, 0);
+    return res;
+  }
+
+  getResourceHeaderData() {
+    const { columns } = this.options;
+    return (
+      columns?.map((col, index) => ({
+        colIndex: index,
+        title: col.title,
+        field: col.field,
+        width: col.width,
+      })) || []
+    );
+  }
+
+  getRowLineData() {
+    let y = 0;
+    const lines = this.rowHeightMap.map((rowHeight) => (y += rowHeight));
+    lines.pop();
+    return lines;
+  }
+
+  getTaskData() {
+    return this.dataStore.getTasks();
   }
 
   private generateTicks(options: Header) {
     let startDate = this.startDate;
     const { unit, format } = options;
     const ticks = [];
-    let count = 0
+    let count = 0;
     while (startDate.isBefore(this.endDate)) {
       let endDate = startDate.endOf(unit);
       if (endDate.isAfter(this.endDate)) {
@@ -168,7 +214,7 @@ class Schedule {
         // unitWidth: this.unitWidth,
         value: startDate.valueOf(),
       });
-      count += 1
+      count += 1;
       startDate = startDate.add(1, unit).startOf(unit);
     }
     return ticks;
@@ -183,21 +229,9 @@ class Schedule {
   }
 
   private init() {
-    this.initRenderer();
     this.initData();
-    this.initLayoutInfo();
     this.initLayout();
-    this.initTimeScale();
-    this.initComponents();
-    this.compile();
-    this.render();
-    this.resizeEventStore.observe(this.container, this.triggerResize);
-    // this.resizeEventStore.observe(this.container, this.resize);
-  }
-
-  private triggerResize = (entry: ResizeObserverEntry, observer: ResizeObserver) => {
-    // this.reLayout(entry, observer)
-    this.resize(entry, observer)
+    this.resizeEventStore.observe(this.container, this.resize);
   }
 
   private resize = (entry: ResizeObserverEntry, observer: ResizeObserver) => {
@@ -210,8 +244,8 @@ class Schedule {
     }
     this.width = contentRect?.width ?? this.width;
     this.height = contentRect?.height ?? this.height;
-    this.scenegraph.resize()
-  }
+    this.scenegraph.resize();
+  };
 
   private initData() {
     this.dataStore = new DataStore({
@@ -220,233 +254,21 @@ class Schedule {
     });
   }
 
-  // TODO:
-  private initLayout() {
-    this.layout = new GridLayout({
-      cols: 3,
-      rows: 3,
-      width: this.width,
-      height: this.height,
-    });
-    const { columns = [], headers = [] } = this.options;
-    const columnsWidth = columns.reduce(
-      (width, column) => width + column.width,
-      0
-    );
-    const calendarHeight = headers.reduce(
-      (height, header) => height + (header?.height ?? this.calenderHeight),
-      0
-    );
-    this.layout.setColSize(0, columnsWidth);
-    this.layout.setColSize(1, this.width - columnsWidth - this.scrollbarWidth);
-    this.layout.setColSize(2, this.scrollbarWidth);
-    this.layout.setRowSize(0, calendarHeight);
-    this.layout.setRowSize(
-      1,
-      this.height - calendarHeight - this.scrollbarWidth
-    );
-    this.layout.setRowSize(2, this.scrollbarWidth);
-    this.layout.reLayout();
-  }
-
-  private initTimeScale() {
-    const rect = this.layout.getRectByIndex({
-      colIndex: 1,
-      rowIndex: 1,
-    });
-    // this.timeScale = new TimeScale({
-    //   domain: [
-    //     this.startDate.startOf(this.minUnit).valueOf(),
-    //     this.endDate.endOf(this.minUnit).valueOf(),
-    //   ],
-    //   // range: [rect.x1, rect.x2],
-    //   range: [0, rect.contentWidth ?? rect.width],
-    // });
-  }
-
   getContainer() {
     return this.container;
   }
-
-  getChart() {
-    return this.chart;
-  }
-
-  getTicks() {
-    return this.calender.getTicks();
-  }
-
-  addComponent() {}
-
-  initComponents() {
-    const { headers = [] } = this.options;
-    this.chart = new Chart(this.stage, this.timeScale);
-    this.calender = new Calender(
-      {
-        headers: headers.map((v) => ({
-          ...v,
-          height: v.height ? v.height : this.calenderHeight,
-          autoUnitWidth: this.autoUnitWidth,
-        })),
-        start: this.startDate,
-        end: this.endDate,
-        unitWidth: this.unitWidth,
-      },
-      this.stage,
-      this.timeScale
-    );
-    this.grid = new Grid(
-      { columns: this.options.columns ?? [] },
-      this.stage,
-      this.timeScale
-    );
-    this.header = new GridHeader(
-      { headers: this.options.columns ?? [] },
-      this.stage,
-      this.timeScale
-    );
-    this.scrollX = new Scrollbar(
-      { direction: "horizontal" },
-      this.stage,
-      this.timeScale
-    );
-    this.scrollY = new Scrollbar(
-      { direction: "vertical" },
-      this.stage,
-      this.timeScale
-    );
-    this.calender.setLayoutIndex({ rowIndex: 0, colIndex: 1 });
-    this.grid.setLayoutIndex({ rowIndex: 1, colIndex: 0 });
-    this.chart.setLayoutIndex({ rowIndex: 1, colIndex: 1 });
-    this.header.setLayoutIndex({ rowIndex: 0, colIndex: 0 });
-    this.scrollX.setLayoutIndex({ rowIndex: 2, colIndex: 1 });
-    this.scrollY.setLayoutIndex({ rowIndex: 1, colIndex: 2 });
-    this.components = [
-      this.calender,
-      this.header,
-      this.grid,
-      this.chart,
-      this.scrollX,
-      this.scrollY,
-    ];
-    this.scrollY.addListenser("scroll", this.handleScroll);
-    this.scrollX.addListenser("scroll", this.handleScroll);
-    this.components.forEach((component) => component.bindData(this.dataStore));
-    this.components.forEach((component) => component.bindLayout(this.layout));
-    this.components.forEach((component) => component.bindInstance(this));
-    this.components.forEach((component) => component.init());
-
-    const chartRect = this.layout.getRectByIndex({
-      colIndex: 1,
-      rowIndex: 1,
-    });
-    // TODO
-    this.setContentSize(chartRect.width, chartRect.height);
-    this.layout.reLayout();
-    const rect = this.chart.getLayoutRect();
-    // this.timeScale.setRange([
-    //   // rect.x1,
-    //   0,
-    //   this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth, // TODO: layout item should to calc the contentHeight automatically
-    // ]);
-    this.components.forEach((v) => v.reLayout());
-  }
-
-  private handleScroll = (e: any, payload: ScrollbarEventPayload) => {
-    const { offset, direction } = payload;
-    if (direction === "vertical") {
-      this.layout.setRowOffset(this.scrollY?.rowIndex!, offset);
-    } else if (direction === "horizontal") {
-      this.layout.setColOffset(this.scrollX?.colIndex!, offset);
-    }
-    this.layout.reLayout();
-    this.components.forEach((v) => v.reLayout());
-    this.render();
-  };
 
   scale(timeStamp: number) {
     return this.timeScale.getValue(timeStamp);
   }
 
-  private compile() {
-    this.components.forEach((component) => component.compile());
-  }
-
-  private initRenderer() {
-    this.stage = new Stage({
-      container: this.container,
-      width: this.width,
-      height: this.height,
-      autoRender: false,
-    });
-  }
-
-  private setContentSize(rectWidth: number, rectHeight: number) {
-    if (this.scrollX && !this.autoUnitWidth && !isNil(this.unitWidth)) {
-      this.layout.setColContentSize(
-        this.scrollX?.colIndex!,
-        Math.max(this.calender.count * this.unitWidth, rectWidth)
-      );
-    }
-    if (this.scrollY) {
-      const contentHeight = this.grid.count * this.grid.height;
-      this.layout.setRowContentSize(
-        this.grid.rowIndex!,
-        Math.max(contentHeight, rectHeight)
-      );
-    }
-  }
-
-  private reLayout = (entry: ResizeObserverEntry, observer: ResizeObserver) => {
-    const { contentRect } = entry;
-    if (
-      this.width === contentRect?.width &&
-      this.height === contentRect?.height
-    ) {
-      return;
-    }
-    if (this.autoFit) {
-      this.width = contentRect?.width ?? this.width;
-      this.height = contentRect?.height ?? this.height;
-    }
-    this.stage.width = this.width;
-    this.stage.height = this.height;
-    this.layout.setSize(this.width, this.height);
-    const leftRect = this.layout.getRectByIndex({
-      rowIndex: 0,
-      colIndex: 0,
-    });
-    const chartWidth = this.width - leftRect.width - this.scrollbarWidth;
-    const chartHeight = this.height - leftRect.height - this.scrollbarWidth;
-    this.layout.setColSize(1, chartWidth);
-    this.layout.setRowSize(1, chartHeight);
-
-    this.setContentSize(chartWidth, chartHeight);
-    this.layout.reLayout();
-    const rect = this.chart.getLayoutRect();
-    this.timeScale.setRange([
-      // rect.x1,
-      0,
-      rect.contentWidth,
-      // this.autoUnitWidth ? rect.x2 : rect.x1 + rect.contentWidth,
-    ]);
-    this.components.forEach((v) => v.reLayout());
-    this.render();
-  };
-
-  addGraphics(graphic: IGraphic) {
-    this.stage.defaultLayer.add(graphic);
-  }
-
   render() {
-    this.stage.render();
     this.scenegraph.render();
-    console.log("render");
   }
 
   release() {
-    this.components.forEach((v) => v.release());
-    this.stage.release();
+    // this.components.forEach((v) => v.release());
+    // this.stage.release();
     this.scenegraph.release();
     this.resizeEventStore.release();
   }

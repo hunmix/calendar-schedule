@@ -31,12 +31,12 @@ export class DataStore {
   private init() {
     const { tasks = [], resources = [] } = this.option;
     resources.forEach((resource, index) =>
-      this.addResource({ ...resource, rowId: index })
+      this.addResource({ ...resource, rowIndex: index })
     );
     tasks.forEach((task) =>
       this.addTask({
         ...task,
-        rowId: this.getRowIdByResourceId(task.resourceId),
+        rowIndex: this.getRowIdByResourceId(task.resourceId),
       })
     );
   }
@@ -57,7 +57,7 @@ export class DataStore {
     const resource = this.resourceMap.get(id);
 
     if (resource) {
-      return resource.rowId;
+      return resource.rowIndex;
     }
     throw new Error(`resource id ${id} not found`);
   }

@@ -70,6 +70,7 @@ const App = () => {
         headers: [
           {
             unit: "month",
+            format: "YYYY-MM",
           },
           {
             unit: "day",
@@ -88,7 +89,7 @@ const App = () => {
             width: 120,
           },
         ],
-        tasks: generateRandomTasks(200, "2024-03-20", "2024-06-10"),
+        tasks: generateRandomTasks(500, "2024-03-20", "2024-06-10"),
         // tasks: [
         //   {
         //     id: "1",
@@ -136,7 +137,7 @@ const App = () => {
         //     type: "type1",
         //   },
         // ],
-        resources: generateResources(200),
+        resources: generateResources(500),
       });
       scheduleRef.current = schedule;
       console.log(schedule);
@@ -150,7 +151,6 @@ const App = () => {
   return (
     <div className="canvas-wrapper">
       <div id="canvas"></div>
-      <div id="canvas2"></div>
     </div>
   );
 };

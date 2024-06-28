@@ -130,6 +130,11 @@ export class GridLayout {
     group.bindLayout(layoutItem)
   }
 
+  getLayoutItemByIndex(option: { colIndex: number, rowIndex: number }) {
+    const { rowIndex, colIndex } = option;
+    return this.rows[rowIndex][colIndex];
+  }
+
   reLayout() {
     this.colsSize.reduce((totalSize, curSize, index) => {
       const colContentSize = this.colsContentSize[index];

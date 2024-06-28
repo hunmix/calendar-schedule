@@ -9,7 +9,7 @@ export interface TaskDataOption extends TaskOption {
 
 export class TaskData {
   id: string;
-  rowId: number;
+  rowIndex: number;
   title: string;
   resourceId?: string;
   index: number;
@@ -21,9 +21,9 @@ export class TaskData {
   originData: TaskOption;
 
   constructor(option: TaskDataOption) {
-    const { id, rowId, title, start, end, resourceId, index } = option;
+    const { id, rowIndex, title, start, end, resourceId, index } = option;
     this.id = id;
-    this.rowId = rowId;
+    this.rowIndex = rowIndex;
     this.resourceId = resourceId;
     this.title = title;
     this.index = index;
